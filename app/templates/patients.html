@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}
+{% if action == 'create' %}
+Register Patient - CareFlow
+{% elif action == 'edit' %}
+Edit Patient - CareFlow
+{% else %}
+Manage Patients - CareFlow
+{% endif %}
+{% endblock %}
+{% block content %}
+{# ─── CREATE / EDIT FORM ─────────────────────────────────────────────────── #}
+{% if action == "create" or action == "edit" %}
+{% set is_edit = (action == "edit") %}
+<div class="page-header">
+    <div>
+        <h1>{% if is_edit %}Edit Patient{% else %}Register New Patient{% endif %}</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.25rem;">
+            {% if is_edit %}Update the patient's personal details.{% else %}Enter the patient's personal details to
+            create a new profile.{% endif %}
+        </p>
+    </div>
+    <a href="/patients/" class="btn btn-secondary">Back to Directory</a>
+</div>
+<div class="card" style="max-width: 600px; margin: 1.5rem auto;">
+    {% if error %}
+    <div
+        style="color: var(--danger); background-color: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-weight: 500; font-size: 0.9rem;">
+        {{ error }}
+    </div>
+    {% endif %}
+    {% if is_edit %}
+    <form action="/patients/{{ patient.id }}/edit" method="POST">
+        {% else %}
+        <form action="/patients/create" method="POST">
+            {% endif %}
+            <div class="form-group">
+                <label for="name">Full Name *</label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="John Doe"
+                    value="{{ patient.name if is_edit else (form_data.name if form_data else '') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address *</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="john.doe@example.com"
+                    value="{{ patient.email if is_edit else (form_data.email if form_data else '') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" class="form-control" placeholder="+1 (555) 000-0000"
+                    value="{{ patient.phone if is_edit else (form_data.phone if form_data else '') }}">
+            </div>
+            <div class="form-group">
+                <label for="date_of_birth">Date of Birth</label>
+                <input type="date" id="date_of_birth" name="date_of_birth" class="form-control"
+                    value="{{ patient.date_of_birth if is_edit else (form_data.date_of_birth if form_data else '') }}">
+            </div>
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                <a href="/patients/" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    {% if is_edit %}Save Changes{% else %}Register Patient{% endif %}
+                </button>
+            </div>
+        </form>
+</div>
+{# ─── LIST VIEW ──────────────────────────────────────────────────────────── #}
+{% else %}
+<div class="page-header">
+    <div>
+        <h1>Patients Directory</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.25rem;">Register, view, and manage patient profiles.</p>
+    </div>
+    <a href="/patients/create" class="btn btn-primary">Add New Patient</a>
+</div>
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Date of Birth</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if patients %}
+            {% for patient in patients %}
+            <tr>
+                <td>{{ patient.id }}</td>
+                <td style="font-weight: 600;">{{ patient.name }}</td>
+                <td>{{ patient.email }}</td>
+                <td>{{ patient.phone or '-' }}</td>
+                <td>{{ patient.date_of_birth or '-' }}</td>
+                <td>
+                    <a href="/patients/{{ patient.id }}/edit" class="btn btn-secondary"
+                        style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Edit</a>
+                    <form action="/patients/{{ patient.id }}/delete" method="POST" style="display:inline;"
+                        onsubmit="return confirm('Delete patient {{ patient.name }}? This will also remove all their appointments.')">
+                        <button type="submit" class="btn btn-danger"
+                            style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: var(--text-secondary); padding: 3rem;">
+                    No patients registered yet. Click "Add New Patient" to get started.
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

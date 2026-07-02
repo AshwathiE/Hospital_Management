@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+{% block title %}
+{% if action == 'create' %}
+Book Appointment - CareFlow
+{% elif action == 'edit' %}
+Edit Appointment - CareFlow
+{% else %}
+Appointments - CareFlow
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{# ───────────────────────── CREATE / EDIT FORM ───────────────────────── #}
+
+{% if action == "create" or action == "edit" %}
+
+<div class="page-header">
+    <div>
+        <h1>
+            {% if action == "edit" %}Edit Appointment{% else %}Book New Appointment{% endif %}
+        </h1>
+        <p style="color: var(--text-secondary); margin-top: 0.25rem;">
+            Schedule a consultation between a patient and a doctor.
+        </p>
+    </div>
+    <a href="/appointments/" class="btn btn-secondary">Back to Appointments</a>
+</div>
+
+{% set f = form_data if form_data is defined and form_data else (appointment if appointment is defined else None) %}
+
+<div class="card" style="max-width: 640px; margin: 1.5rem auto;">
+
+    {% if error %}
+    <div style="color: var(--danger); background-color: rgba(239, 68, 68, 0.1);
+                border: 1px solid rgba(239, 68, 68, 0.2);
+                padding: 1rem; border-radius: 8px;
+                margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+        <div style="font-weight: 500;">{{ error }}</div>
+        {% if suggested_date and suggested_time %}
+        <div>
+            <button type="button" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 6px; background-color: var(--danger); color: white;" onclick="applySuggestedTime('{{ suggested_date }}', '{{ suggested_time }}')">
+                Apply AI Suggestion: {{ suggested_time }}
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <form action="{% if action == 'edit' %}/appointments/{{ f.id }}/edit{% else %}/appointments/create{% endif %}"
+        method="POST">
+
+        <!-- Patient -->
+        <div class="form-group">
+            <label>Patient *</label>
+            <select name="patient_id" class="form-control" required>
+                <option value="" disabled {% if not f %}selected{% endif %}>-- Select a Patient --</option>
+
+                {% for patient in patients %}
+                <option value="{{ patient.id }}" {% if f and f.patient_id==patient.id %}selected{% endif %}>
+                    {{ patient.name }} ({{ patient.email }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Doctor -->
+        <div class="form-group">
+            <label>Doctor *</label>
+            <select name="doctor_id" class="form-control" required>
+                <option value="" disabled {% if not f %}selected{% endif %}>-- Select a Doctor --</option>
+
+                {% for doctor in doctors %}
+                <option value="{{ doctor.id }}" {% if f and f.doctor_id==doctor.id %}selected{% endif %}>
+                    {{ doctor.name }} — {{ doctor.specialty }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Date & Time -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-group">
+                <label>Date *</label>
+                <input type="date" name="appointment_date" class="form-control"
+                    value="{% if f %}{% if f.appointment_date is string %}{{ f.appointment_date }}{% else %}{{ f.appointment_date.strftime('%Y-%m-%d') }}{% endif %}{% else %}{% endif %}"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label>Time *</label>
+                <input type="time" name="appointment_time" class="form-control"
+                    value="{% if f %}{% if f.appointment_time is string %}{{ f.appointment_time }}{% elif f.appointment_date is not none %}{{ f.appointment_date.strftime('%H:%M') }}{% else %}09:00{% endif %}{% else %}09:00{% endif %}"
+                    required>
+            </div>
+        </div>
+
+        <!-- AI Suggestion Container -->
+        <div id="ai-suggestion-container" style="display: none; margin-bottom: 1.5rem; margin-top: -0.5rem; transition: all var(--transition-normal);">
+            <div id="ai-suggestion-card" style="border: 1px solid var(--border-color); border-radius: 8px; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; background-color: rgba(14, 165, 233, 0.05); border-color: rgba(14, 165, 233, 0.3);">
+                <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                    <div id="ai-suggestion-icon" style="color: var(--accent); margin-top: 0.1rem; font-size: 1.1rem;">
+                        <span id="ai-status-emoji">⭐</span>
+                    </div>
+                    <div>
+                        <span id="ai-suggestion-title" style="font-weight: 600; display: block; font-size: 0.875rem; color: var(--text-primary);">AI Scheduler Status</span>
+                        <p id="ai-suggestion-msg" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;"></p>
+                    </div>
+                </div>
+                <div id="ai-action-btn-container" style="display: none; margin-left: 1.6rem; margin-top: 0.25rem;">
+                    <button type="button" class="btn btn-primary" id="apply-ai-btn" style="font-size: 0.75rem; padding: 0.3rem 0.8rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 500;">
+                        Apply suggested slot
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="form-group">
+            <label>Status</label>
+            <select name="status" class="form-control">
+                <option value="Scheduled" {% if not f or f.status=='Scheduled' %}selected{% endif %}>
+                    Scheduled
+                </option>
+                <option value="Completed" {% if f and f.status=='Completed' %}selected{% endif %}>
+                    Completed
+                </option>
+                <option value="Cancelled" {% if f and f.status=='Cancelled' %}selected{% endif %}>
+                    Cancelled
+                </option>
+            </select>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group">
+            <label>Notes</label>
+            <textarea name="notes" class="form-control" rows="3" placeholder="Optional notes...">
+                {{ f.notes if f else '' }}
+            </textarea>
+        </div>
+
+        <!-- Buttons -->
+        <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+            <a href="/appointments/" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                {% if action == "edit" %}Update Appointment{% else %}Book Appointment{% endif %}
+            </button>
+        </div>
+
+    </form>
+</div>
+
+{% else %}
+
+{# ───────────────────────── LIST VIEW ───────────────────────── #}
+
+<div class="page-header">
+    <div>
+        <h1>Consultation Appointments</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.25rem;">
+            Book, reschedule, and track visits.
+        </p>
+    </div>
+    <a href="/appointments/create" class="btn btn-primary">Book Appointment</a>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Date & Time</th>
+                <th>Status</th>
+                <th>Notes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% if appointments %}
+            {% for appt in appointments %}
+            <tr>
+                <td>{{ appt.id }}</td>
+                <td>{{ appt.patient.name }}</td>
+                <td>{{ appt.doctor.name }}</td>
+                <td>{{ appt.appointment_date.strftime('%Y-%m-%d %H:%M') }}</td>
+
+                <td>
+                    {% if appt.status == "Scheduled" %}
+                    Scheduled
+                    {% elif appt.status == "Completed" %}
+                    Completed
+                    {% else %}
+                    Cancelled
+                    {% endif %}
+                </td>
+
+                <td>{{ appt.notes or '-' }}</td>
+
+                <td>
+                    <a href="/appointments/{{ appt.id }}/edit" class="btn btn-secondary">Edit</a>
+
+                    <form action="/appointments/{{ appt.id }}/delete" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="7" style="text-align:center; padding:2rem;">
+                    No appointments booked yet.
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endif %}
+
+{% block extra_js %}
+<script>
+    function applySuggestedTime(date, time) {
+        const dateInput = document.querySelector('input[name="appointment_date"]');
+        const timeInput = document.querySelector('input[name="appointment_time"]');
+        if (dateInput && timeInput) {
+            dateInput.value = date;
+            timeInput.value = time;
+            // Trigger check
+            if (typeof checkAvailability === 'function') {
+                checkAvailability();
+            }
+        }
+    }
+</script>
+{% endblock %}
+
+{% endblock %}

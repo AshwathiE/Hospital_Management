@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if action == "create" %}
+Add Doctor - CareFlow
+{% elif action == "edit" %}
+Edit Doctor - CareFlow
+{% else %}
+Doctors - CareFlow
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<!-- ================= CREATE DOCTOR ================= -->
+{% if action == "create" %}
+
+<div class="page-header">
+    <div>
+        <h1>Add Doctor</h1>
+        <p style="color:var(--text-secondary);">
+            Register a new doctor.
+        </p>
+    </div>
+
+    <a href="/doctors/" class="btn btn-secondary">
+        Back
+    </a>
+</div>
+
+<div class="card" style="max-width:650px;margin:auto;">
+
+    {% if error %}
+    <div style="padding:12px;
+        background:#ffe6e6;
+        color:red;
+        border-radius:8px;
+        margin-bottom:20px;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form action="/doctors/create" method="POST">
+
+        <div class="form-group">
+            <label>Name</label>
+
+            <input type="text" name="name" class="form-control" value="{{ form_data.name if form_data else '' }}"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label>Specialty</label>
+
+            <input type="text" name="specialty" class="form-control"
+                value="{{ form_data.specialty if form_data else '' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+
+            <input type="email" name="email" class="form-control" value="{{ form_data.email if form_data else '' }}"
+                required>
+        </div>
+
+        <div class="form-group">
+            <label>Phone</label>
+
+            <input type="text" name="phone" class="form-control" value="{{ form_data.phone if form_data else '' }}">
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:10px;">
+
+            <button type="submit" class="btn btn-primary">
+                Add Doctor
+            </button>
+
+            <a href="/doctors/" class="btn btn-secondary">
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+<!-- ================= EDIT DOCTOR ================= -->
+
+{% elif action == "edit" %}
+
+<div class="page-header">
+
+    <div>
+
+        <h1>Edit Doctor</h1>
+
+        <p style="color:var(--text-secondary);">
+            Update doctor information.
+        </p>
+
+    </div>
+
+    <a href="/doctors/" class="btn btn-secondary">
+
+        Back
+
+    </a>
+
+</div>
+
+<div class="card" style="max-width:650px;margin:auto;">
+
+    {% if error %}
+
+    <div style="padding:12px;
+        background:#ffe6e6;
+        color:red;
+        border-radius:8px;
+        margin-bottom:20px;">
+
+        {{ error }}
+
+    </div>
+
+    {% endif %}
+
+    <form action="/doctors/{{ doctor.id }}/edit" method="POST">
+
+        <div class="form-group">
+
+            <label>Name</label>
+
+            <input type="text" name="name" class="form-control" value="{{ doctor.name }}" required>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>Specialty</label>
+
+            <input type="text" name="specialty" class="form-control" value="{{ doctor.specialty }}" required>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>Email</label>
+
+            <input type="email" name="email" class="form-control" value="{{ doctor.email }}" required>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>Phone</label>
+
+            <input type="text" name="phone" class="form-control" value="{{ doctor.phone }}">
+
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:10px;">
+
+            <button type="submit" class="btn btn-primary">
+
+                Update Doctor
+
+            </button>
+
+            <a href="/doctors/" class="btn btn-secondary">
+
+                Cancel
+
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+<!-- ================= LIST DOCTORS ================= -->
+
+{% else %}
+
+<div class="page-header">
+
+    <div>
+
+        <h1>Doctors</h1>
+
+        <p style="color:var(--text-secondary);">
+
+            Manage all doctors.
+
+        </p>
+
+    </div>
+
+    <a href="/doctors/create" class="btn btn-primary">
+
+        Add Doctor
+
+    </a>
+
+</div>
+
+<div class="table-container">
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Name</th>
+
+                <th>Specialty</th>
+
+                <th>Email</th>
+
+                <th>Phone</th>
+
+                <th>Actions</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% if doctors %}
+
+            {% for doctor in doctors %}
+
+            <tr>
+
+                <td>{{ doctor.id }}</td>
+
+                <td>{{ doctor.name }}</td>
+
+                <td>{{ doctor.specialty }}</td>
+
+                <td>{{ doctor.email }}</td>
+
+                <td>{{ doctor.phone or "-" }}</td>
+
+                <td>
+
+                    <a href="/doctors/{{ doctor.id }}/edit" class="btn btn-secondary">
+
+                        Edit
+
+                    </a>
+
+                    <form action="/doctors/{{ doctor.id }}/delete" method="POST" style="display:inline;"
+                        onsubmit="return confirm('Delete {{ doctor.name }}?');">
+
+                        <button type="submit" class="btn btn-danger">
+
+                            Delete
+
+                        </button>
+
+                    </form>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+            {% else %}
+
+            <tr>
+
+                <td colspan="6" style="text-align:center;padding:40px;">
+
+                    No doctors found.
+
+                </td>
+
+            </tr>
+
+            {% endif %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

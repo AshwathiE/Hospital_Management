@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - CareFlow{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Dashboard Overview</h1>
+        <p style="color: var(--text-secondary); margin-top: 0.25rem;">Welcome to CareFlow Hospital Management System. Here is a summary of today's status.</p>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="card">
+        <div class="card-title">Total Patients</div>
+        <div class="card-value">{{ patient_count }}</div>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Registered in system</p>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">Active Doctors</div>
+        <div class="card-value">{{ doctor_count }}</div>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">On-duty medical staff</p>
+    </div>
+    
+    <div class="card">
+        <div class="card-title">Appointments Today</div>
+        <div class="card-value">{{ appointment_count }}</div>
+        <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Scheduled sessions</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">System Navigation Quick Links</h2>
+    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="/patients/" class="btn btn-primary">Manage Patients</a>
+        <a href="/doctors/" class="btn btn-secondary">View Doctors</a>
+        <a href="/appointments/" class="btn btn-secondary">Schedule Appointment</a>
+    </div>
+</div>
+{% endblock %}
