@@ -271,7 +271,7 @@ def suggest_time(payload: SuggestTimeRequest, db: Session = Depends(get_db)):
         payload.appointment_id
     )
     
-    if not conflicting:
+    if conflicting:
         return {"available": True}
         
     suggested_dt = find_nearest_available_slot(
