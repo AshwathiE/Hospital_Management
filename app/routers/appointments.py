@@ -73,7 +73,7 @@ def create_submit(
 ):
 
     appointment_datetime = datetime.strptime(
-        f"{appointment_date} {appointment_time}", "%Y-%m-%d %H:%M"
+        f"{appointment_date} {appointment_time}", "%Y-%m-%d %H:%M:%S"
     )
     
     if appointment_datetime < datetime.now():
