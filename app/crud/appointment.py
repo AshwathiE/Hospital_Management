@@ -94,7 +94,8 @@ def find_nearest_available_slot(db: Session, doctor_id: UUID, requested_dt: date
         for appt in appointments:
             if appointment_id and appt.id == appointment_id:
                 continue
-            appt_start = appt.appointment_date
+            appt_start = appt.appointment_date.replace
+            ### bug for creating runtime error
             appt_end = appt_start + slot_duration
             if appt_start < slot_end and appt_end > slot_start:
                 return False

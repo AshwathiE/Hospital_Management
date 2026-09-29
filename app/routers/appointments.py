@@ -73,7 +73,7 @@ def create_submit(
 ):
 
     appointment_datetime = datetime.strptime(
-        f"{appointment_date} {appointment_time}", "%Y-%m-%d %H:%M:%S"
+        f"{appointment_date} {appointment_time}", "%Y-%m-%d %H:%M"
     )
     
     if appointment_datetime < datetime.now():
@@ -82,7 +82,7 @@ def create_submit(
             name="appointments.html",
             context={
                 "action": "create",
-                "error": "Booking can be done for the past date.",
+                "error": "Booking cannot be done for the past date.",
                 ##changed for bug fix "error": "Booking cannot be done for the past date.",
                 "patients": get_patients(db),
                 "doctors": get_doctors(db),
@@ -272,7 +272,7 @@ def suggest_time(payload: SuggestTimeRequest, db: Session = Depends(get_db)):
         payload.appointment_id
     )
     
-    if conflicting:
+    if not conflicting:
         return {"available": True}
         
     suggested_dt = find_nearest_available_slot(
