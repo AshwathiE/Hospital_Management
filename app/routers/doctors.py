@@ -209,3 +209,6 @@ def delete_doctor_submit(
 ):
     delete_doctor(db, doctor_id)
     return RedirectResponse(url="/doctors/", status_code=303)
+
+def get_appointment(db: Session, appointment_id: UUID):
+    return db.query(Appointment).filter(Appointment.id==appointment_id).first()

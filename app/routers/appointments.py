@@ -83,6 +83,7 @@ def create_submit(
             context={
                 "action": "create",
                 "error": "Booking cannot be done for the past date.",
+                ##changed for bug fix "error": "Booking cannot be done for the past date.",
                 "patients": get_patients(db),
                 "doctors": get_doctors(db),
                 "form_data": {
