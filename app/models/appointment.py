@@ -24,7 +24,7 @@ class Appointment(Base):
         nullable=False
     )
 
-    appointment_date = Column(DateTime, nullable=False)
+    ###appointment_date = Column(DateTime, nullable=False)
     notes = Column(String)
 
     patient = relationship("Patient", back_populates="appointments")
