@@ -23,8 +23,6 @@ class Appointment(Base):
         ForeignKey("doctors.id"),
         nullable=False
     )
-
-    ###appointment_date = Column(DateTime, nullable=False)
     notes = Column(String)
 
     patient = relationship("Patient", back_populates="appointments")
